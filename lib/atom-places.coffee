@@ -15,6 +15,8 @@ module.exports = AtomPlaces =
 
     # Register command that toggles this view
     @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-places:add-bookmark': => @add_bookmark()
+    @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-places:prev-bookmark': => @prev_bookmark()
+    @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-places:next-bookmark': => @next_bookmark()
 
   deactivate: ->
     @modalPanel.destroy()
@@ -25,6 +27,22 @@ module.exports = AtomPlaces =
     atomPlacesViewState: @atomPlacesView.serialize()
 
   add_bookmark: ->
+    console.log 'AtomPlaces: add_bookmark'
+
+    if @modalPanel.isVisible()
+      @modalPanel.hide()
+    else
+      @modalPanel.show()
+
+  prev_bookmark: ->
+    console.log 'AtomPlaces: add_bookmark'
+
+    if @modalPanel.isVisible()
+      @modalPanel.hide()
+    else
+      @modalPanel.show()
+
+  next_bookmark: ->
     console.log 'AtomPlaces: add_bookmark'
 
     if @modalPanel.isVisible()
