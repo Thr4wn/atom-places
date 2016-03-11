@@ -5,6 +5,7 @@ module.exports = AtomPlaces =
   atomPlacesView: null
   modalPanel: null
   subscriptions: null
+  [nodes, trees, markers, current_marker] = []
 
   activate: (state) ->
     @atomPlacesView = new AtomPlacesView(state.atomPlacesViewState)
@@ -26,6 +27,22 @@ module.exports = AtomPlaces =
   serialize: ->
     atomPlacesViewState: @atomPlacesView.serialize()
 
+  initialize_from_props: ->
+    ## read properties
+    props_project = atom.project.props
+    file_location = atom.config.get('bookmark-tree.node_file_location')
+    props_system = CSON.readFile(file_location)
+    ## assign variables
+    nodes = props_system.bookmark_tree_nodes
+    trees = props_system.bookmark_tree_trees
+    markers = props_project.markers
+    current_marker = props_project.current_marker
+
+  get_lists
+
+  ###
+  ##  Commands
+  ###
   add_bookmark: ->
     console.log 'AtomPlaces: add_bookmark'
 

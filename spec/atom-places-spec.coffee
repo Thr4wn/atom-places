@@ -14,66 +14,51 @@ describe "AtomPlaces", ->
   ##  Setting up and testing properties and test variables
   ##
   ###
-  get_props ->
-    ## read properties
-    props_project = atom.project.props
+  get_props: ->
+    ## First test reading cson file
     file_location = atom.config.get('bookmark-tree.node_file_location')
     expect(file_location)
     props_system = CSON.readFile(file_location)
     expect(props_system)
-    ## assign variables
-    nodes = props_system.bookmark_tree_nodes
-    trees = props_system.bookmark_tree_trees
-    markers = props_project.markers
-    current_marker = props_project.current_marker
+    ## then test the function doing that.
+    AtomPlaces.initialize_from_props()
 
-  test_files ->
-    open_file("a\nb\nc\nd\nefg\nh")
+  setup_file_env ->
+    open_file_set_as_current("a\nb\nc\nd\nefg\nh")
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
     activationPromise = atom.packages.activatePackage('atom-places')
     get_props()
+    setup_file_env() #TODO: only for the tests that need it?
 
   describe "on initialization of package", ->
-    it "should have written bookmark-tree.cson properties file"
+    it "should have written bookmark-tree.cson properties file", ->
       expect(false) #TODO: activationPromise
 
   describe "All the time", ->
-    it "should be able to access system properties"
+    it "should be able to access system properties", ->
       expect(nodes == {})
       expect(trees == {})
 
-    it "should be able to access project properties"
+    it "should be able to access project properties", ->
       expect(markers == {})
       expect(current_marker == "")
-
-  ###
-  ##
-  ##  Testing Data Structure via API
-  ##
-  ###
-  describe "when Node.new is saved", ->
-    it "gets saved in props"
-      nodes.add(Node.new())
-      nodes.size == 1
-      props.refresh()
-      nodes.size == 1
-
-  describe "when the atom-places:add-list event is triggered", ->
-    it "Should make a new tree"
-      atom.commands.dispatch workspaceElement, 'atom-places:add-list'
-      #TODO: how name the tree?
-      trees.size == 1
-      nodes.size == 1
 
   ###
   ##
   ##  Testing commands
   ##
   ###
+  describe "when the atom-places:add-list event is triggered", ->
+    it "Should make a new tree", ->
+      atom.commands.dispatch workspaceElement, 'atom-places:add-list' #TODO: dispatch command, or run underlying function?
+      #TODO: how name the tree?
+      trees.size == 1
+      nodes.size == 1
+
   describe "when the atom-places:add-bookmark event is triggered", ->
-    it "Should make a new child bookmark"
+    it "Should make a new child bookmark", ->
       curser_at("c")
       trees.xyz = Tree.new(...)
       atom.commands.dispatch workspaceElement, 'atom-places:add-bookmark'
