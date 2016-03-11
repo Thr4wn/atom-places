@@ -1,4 +1,5 @@
 AtomPlaces = require '../lib/atom-places'
+CSON = require 'season'
 
 # Use the command `window:run-package-specs` (cmd-alt-ctrl-p) to run specs.
 #
@@ -6,57 +7,123 @@ AtomPlaces = require '../lib/atom-places'
 # or `fdescribe`). Remove the `f` to unfocus the block.
 
 describe "AtomPlaces", ->
-  [workspaceElement, activationPromise] = []
+  [workspaceElement, activationPromise, nodes, trees, markers, current_marker] = []
+
+  ###
+  ##
+  ##  Setting up and testing properties and test variables
+  ##
+  ###
+  get_props ->
+    ## read properties
+    props_project = atom.project.props
+    file_location = atom.config.get('bookmark-tree.node_file_location')
+    expect(file_location)
+    props_system = CSON.readFile(file_location)
+    expect(props_system)
+    ## assign variables
+    nodes = props_system.bookmark_tree_nodes
+    trees = props_system.bookmark_tree_trees
+    markers = props_project.markers
+    current_marker = props_project.current_marker
+
+  test_files ->
+    open_file("a\nb\nc\nd\nefg\nh")
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
     activationPromise = atom.packages.activatePackage('atom-places')
+    get_props()
 
-  describe "when the atom-places:toggle event is triggered", ->
-    it "hides and shows the modal panel", ->
-      # Before the activation event the view is not on the DOM, and no panel
-      # has been created
-      expect(workspaceElement.querySelector('.atom-places')).not.toExist()
+  describe "on initialization of package", ->
+    it "should have written bookmark-tree.cson properties file"
+      expect(false) #TODO: activationPromise
 
-      # This is an activation event, triggering it will cause the package to be
-      # activated.
-      atom.commands.dispatch workspaceElement, 'atom-places:toggle'
+  describe "All the time", ->
+    it "should be able to access system properties"
+      expect(nodes == {})
+      expect(trees == {})
 
-      waitsForPromise ->
-        activationPromise
+    it "should be able to access project properties"
+      expect(markers == {})
+      expect(current_marker == "")
 
-      runs ->
-        expect(workspaceElement.querySelector('.atom-places')).toExist()
+  ###
+  ##
+  ##  Testing Data Structure via API
+  ##
+  ###
+  describe "when Node.new is saved", ->
+    it "gets saved in props"
+      nodes.add(Node.new())
+      nodes.size == 1
+      props.refresh()
+      nodes.size == 1
 
-        atomPlacesElement = workspaceElement.querySelector('.atom-places')
-        expect(atomPlacesElement).toExist()
+  describe "when the atom-places:add-list event is triggered", ->
+    it "Should make a new tree"
+      atom.commands.dispatch workspaceElement, 'atom-places:add-list'
+      #TODO: how name the tree?
+      trees.size == 1
+      nodes.size == 1
 
-        atomPlacesPanel = atom.workspace.panelForItem(atomPlacesElement)
-        expect(atomPlacesPanel.isVisible()).toBe true
-        atom.commands.dispatch workspaceElement, 'atom-places:toggle'
-        expect(atomPlacesPanel.isVisible()).toBe false
+  ###
+  ##
+  ##  Testing commands
+  ##
+  ###
+  describe "when the atom-places:add-bookmark event is triggered", ->
+    it "Should make a new child bookmark"
+      curser_at("c")
+      trees.xyz = Tree.new(...)
+      atom.commands.dispatch workspaceElement, 'atom-places:add-bookmark'
+      nodes.size == 2
 
-    it "hides and shows the view", ->
-      # This test shows you an integration test testing at the view level.
-
-      # Attaching the workspaceElement to the DOM is required to allow the
-      # `toBeVisible()` matchers to work. Anything testing visibility or focus
-      # requires that the workspaceElement is on the DOM. Tests that attach the
-      # workspaceElement to the DOM are generally slower than those off DOM.
-      jasmine.attachToDOM(workspaceElement)
-
-      expect(workspaceElement.querySelector('.atom-places')).not.toExist()
-
-      # This is an activation event, triggering it causes the package to be
-      # activated.
-      atom.commands.dispatch workspaceElement, 'atom-places:toggle'
-
-      waitsForPromise ->
-        activationPromise
-
-      runs ->
-        # Now we can test for view visibility
-        atomPlacesElement = workspaceElement.querySelector('.atom-places')
-        expect(atomPlacesElement).toBeVisible()
-        atom.commands.dispatch workspaceElement, 'atom-places:toggle'
-        expect(atomPlacesElement).not.toBeVisible()
+  # describe "when the atom-places:toggle event is triggered", ->
+  #   it "hides and shows the modal panel", ->
+  #     # Before the activation event the view is not on the DOM, and no panel
+  #     # has been created
+  #     expect(workspaceElement.querySelector('.atom-places')).not.toExist()
+  #
+  #     # This is an activation event, triggering it will cause the package to be
+  #     # activated.
+  #     atom.commands.dispatch workspaceElement, 'atom-places:toggle'
+  #
+  #     waitsForPromise ->
+  #       activationPromise
+  #
+  #     runs ->
+  #       expect(workspaceElement.querySelector('.atom-places')).toExist()
+  #
+  #       atomPlacesElement = workspaceElement.querySelector('.atom-places')
+  #       expect(atomPlacesElement).toExist()
+  #
+  #       atomPlacesPanel = atom.workspace.panelForItem(atomPlacesElement)
+  #       expect(atomPlacesPanel.isVisible()).toBe true
+  #       atom.commands.dispatch workspaceElement, 'atom-places:toggle'
+  #       expect(atomPlacesPanel.isVisible()).toBe false
+  #
+  #   it "hides and shows the view", ->
+  #     # This test shows you an integration test testing at the view level.
+  #
+  #     # Attaching the workspaceElement to the DOM is required to allow the
+  #     # `toBeVisible()` matchers to work. Anything testing visibility or focus
+  #     # requires that the workspaceElement is on the DOM. Tests that attach the
+  #     # workspaceElement to the DOM are generally slower than those off DOM.
+  #     jasmine.attachToDOM(workspaceElement)
+  #
+  #     expect(workspaceElement.querySelector('.atom-places')).not.toExist()
+  #
+  #     # This is an activation event, triggering it causes the package to be
+  #     # activated.
+  #     atom.commands.dispatch workspaceElement, 'atom-places:toggle'
+  #
+  #     waitsForPromise ->
+  #       activationPromise
+  #
+  #     runs ->
+  #       # Now we can test for view visibility
+  #       atomPlacesElement = workspaceElement.querySelector('.atom-places')
+  #       expect(atomPlacesElement).toBeVisible()
+  #       atom.commands.dispatch workspaceElement, 'atom-places:toggle'
+  #       expect(atomPlacesElement).not.toBeVisible()
